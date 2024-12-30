@@ -1,0 +1,111 @@
+//
+//  ViewController.swift
+//  messageAppPractice
+//
+//  Created by Jackson Dow on 2024-09-30.
+//
+
+import UIKit
+
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        messages.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MessageCell") ?? UITableViewCell(style: .default, reuseIdentifier: "MessageCell")
+        cell.textLabel?.text = messages[indexPath.row] //The ith message will be displayed in the ith row
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 60.0 //Change this as desired
+    }
+    
+    var messages: [String] = [] //Create messages array of strings
+    let tableView = UITableView()
+    
+    let messageTextField: UITextField = {
+        let field = UITextField()
+        field.placeholder = "Enter your message here"
+        field.borderStyle = .roundedRect
+        field.translatesAutoresizingMaskIntoConstraints = false
+        return field
+    }()
+    
+    let sendButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Send", for: .normal)
+        button.backgroundColor = .blue
+        button.setTitleColor(.white, for: .normal)
+        button.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        view.addSubview(messageTextField)
+        view.addSubview(sendButton)
+        view.addSubview(tableView)
+        
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: messageTextField.topAnchor, constant: -10),
+            
+            messageTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            messageTextField.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -10),
+            messageTextField.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
+            messageTextField.heightAnchor.constraint(equalToConstant: 40),
+            
+            sendButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            sendButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
+            sendButton.widthAnchor.constraint(equalToConstant: 80),
+            sendButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+    
+    @objc func sendMessage() {
+        guard let message = messageTextField.text, !message.isEmpty else {
+            return // No empty message
+        }
+        sendMessageToServer(message: message) { success in //Mock network call
+            if success {
+                DispatchQueue.main.async {
+                    self.messages.append(message)
+                    self.tableView.reloadData()
+                    self.messageTextField.text = ""
+                    self.view.endEditing(true)
+                }
+            } else {
+                print("Failed to send message")
+            }
+        }
+    }
+    
+    func sendMessageToServer(message: String, completion: @escaping (Bool) -> Void) {
+        DispatchQueue.global().asyncAfter(deadline: .now() + 1.5) { //Adjust this for prefered delay time
+            completion(true)
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        tableView.reloadData()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+    }
+
+}
+
